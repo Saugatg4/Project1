@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
@@ -24,9 +25,8 @@ public class Game {
 	Font normalFont = new Font("Times New Roman", Font.PLAIN, 28);
 	JButton startButton, choice1, choice2, choice3, choice4;
 	JTextArea mainTextArea;
-	int playerHP, monsterHP;
-	String weapon, position;
-
+	int playerHP, monsterHP, silverRing;
+	String weapon, position, username;
 	TitleScreenHandler tsHandler = new TitleScreenHandler();
 	ChoiceHandler choiceHandler = new ChoiceHandler();
 
@@ -74,6 +74,12 @@ public class Game {
 
 	public void createGameScreen() {
 
+		username = JOptionPane.showInputDialog(myWindow, "Enter your username.");
+
+		if (username == null || username.trim().isEmpty()) {
+			username = "Player";
+		}
+
 		titleNamePanel.setVisible(false);
 		startButtonPanel.setVisible(false);
 
@@ -82,7 +88,7 @@ public class Game {
 		mainTextPanel.setBackground(Color.black);
 		con.add(mainTextPanel);
 
-		mainTextArea = new JTextArea("This is the main text area. This game is going to be great. Im sure of it");
+		mainTextArea = new JTextArea("Welcome " + username + "! This game is going to be great.");
 		mainTextArea.setBounds(100,100,600,250);
 		mainTextArea.setBackground(Color.black);
 		mainTextArea.setForeground(Color.white);
@@ -215,22 +221,22 @@ public class Game {
 		choice3.setText("Go South");
 		choice4.setText("Go West");
 	}
-	
+
 	public void north() {
-		
+
 		position = "north";
-		mainTextArea.setText("There is a river. \nYou drank the water and rest at the riverside.\n\n(Your HP is recovered by 2");
+		mainTextArea.setText("There is a river. \nYou drank the water and rest at the riverside.\n\n(Your HP is recovered by 2)");
 		playerHP = playerHP + 2;
 		hpLabelNumber.setText("" + playerHP);
 		choice1.setText("Go South");
 		choice2.setText("");
 		choice3.setText("");
 		choice4.setText("");
-		
+
 	}
-	
+
 	public void east() {
-		
+
 		position = "east";
 		mainTextArea.setText("You walked into a forest and found a Long Sword!\n\n(You obtained a Long Sword)");
 		weapon = "Long Sword";
@@ -240,7 +246,7 @@ public class Game {
 		choice3.setText("");
 		choice4.setText("");
 	}
-	
+
 	public void west() {
 		position = "west";
 		mainTextArea.setText("You have encountered a Monster!");
@@ -249,7 +255,7 @@ public class Game {
 		choice3.setText("");
 		choice4.setText("");
 	}
-	
+
 	public void fight() {
 		position = "fight";
 		mainTextArea.setText("Monster HP:" + monsterHP + "\n\nWhat do you want to do?");
@@ -257,6 +263,90 @@ public class Game {
 		choice2.setText("Run");
 		choice3.setText("");
 		choice4.setText("");
+	}
+
+	public void playerAttack() {
+		position = "playerAttack";
+
+		int playerDamage = 0;
+
+		if (weapon.equals("Knife")) {
+			playerDamage = new java.util.Random().nextInt(3); //0,1,2
+		}
+		else if (weapon.equals("Long Sword")) {
+			playerDamage = new java.util.Random().nextInt(8); //0,1,2,3,4,5,6,7
+		}
+
+		mainTextArea.setText("You attacked the monster and gave " + playerDamage + " damage!");
+
+		monsterHP = monsterHP - playerDamage;
+
+		choice1.setText(">");
+		choice2.setText("");
+		choice3.setText("");
+		choice4.setText("");
+	}
+
+	public void monsterAttack() {
+		position = "monsterAttack";
+
+		int monsterDamage = 0;
+
+		monsterDamage = new java.util.Random().nextInt(5);
+
+		mainTextArea.setText("The monster attacked you and gave you " + monsterDamage + " damage!");
+
+		playerHP = playerHP - monsterDamage;
+		hpLabelNumber.setText("" + playerHP);
+
+		choice1.setText(">");
+		choice2.setText("");
+		choice3.setText("");
+		choice4.setText("");
+	}
+
+	public void win() {
+
+		position = "win";
+
+		mainTextArea.setText("you defeated the monster! \n The monster dropped a ring! \n\n (you obtained a Silver Ring)");
+
+		silverRing = 1;
+
+		choice1.setText("Go East");
+		choice2.setText("");
+		choice3.setText("");
+		choice4.setText("");
+	}
+
+	public void lose() {
+		position = "lose";
+
+		mainTextArea.setText("you are dead! \n\n<GAME OVER>");
+
+		choice1.setText("");
+		choice2.setText("");
+		choice3.setText("");
+		choice4.setText("");
+		choice1.setVisible(false);
+		choice2.setVisible(false);
+		choice3.setVisible(false);
+		choice4.setVisible(false);
+	}
+
+	public void ending() {
+		position = "ending";
+
+		mainTextArea.setText("Guard : Oh you killed that monster!? \nThank you so much. you are a true hero!\nWelcome to our town!\n\n<THE END>");
+
+		choice1.setText("");
+		choice2.setText("");
+		choice3.setText("");
+		choice4.setText("");
+		choice1.setVisible(false);
+		choice2.setVisible(false);
+		choice3.setVisible(false);
+		choice4.setVisible(false);
 	}
 
 	public class TitleScreenHandler implements ActionListener {
@@ -276,7 +366,14 @@ public class Game {
 			switch(position) {
 			case "townGate" :
 				switch(yourChoice) {
-				case "c1" : talkGuard(); break;
+				case "c1" : 
+					if (silverRing == 1) {
+						ending();
+					}
+					else {
+						talkGuard();
+					}
+					break;
 				case "c2" : attackGuard(); break;
 				case "c3" : crossRoad(); break;
 				}
@@ -318,9 +415,39 @@ public class Game {
 				break;
 			case "fight":
 				switch (yourChoice) {
-				case "c1": break;
-				case "c2": break;
+				case "c1": playerAttack();break;
+				case "c2": crossRoad();break;
 				}
+				break;
+			case "playerAttack":
+				switch(yourChoice) {
+				case "c1" : 
+					if (monsterHP < 1) {
+						win();
+					}
+					else {
+						monsterAttack();
+					}
+					break;
+				}
+				break;
+			case "monsterAttack":
+				switch (yourChoice) {
+				case  "c1":
+					if (playerHP < 1) {
+						lose();
+					}
+					else {
+						fight();
+					}
+					break;
+				}
+				break;
+			case "win":
+				switch(yourChoice) {
+				case "c1": crossRoad();
+				}
+				break;
 			}
 		}
 	}
